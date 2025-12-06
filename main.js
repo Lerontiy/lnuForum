@@ -10,7 +10,7 @@ const DB_FILE = 'database.json';
 
 const API_KEY = process.env.GEMINI_KEY;
 const genAI = new GoogleGenerativeAI(API_KEY);
-const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
@@ -28,13 +28,21 @@ function saveToDb() {
 
 async function aiModeratorCheck(text) {
     try {
-        const prompt = `Ти модератор. Перевір текст на агресію або мати: "${text}". Відповідай ТІЛЬКИ "ТАК" (якщо токсично) або "НІ".`;
+        const prompt = `Ти дуже суворий модератор. Перевір текст: "${text}".
+        Відповідай "ТАК" (блокувати), якщо виконується хоча б одна умова:
+        1. Текст містить агресію, мати, образи або грубий сленг.
+        2. Текст є безглуздим набором літер чи випадкових символів.
+        3. Текст містить спам або повторення однієї літери багато разів.
+        
+        Якщо текст має сенс, читабельний і ввічливий — відповідай "НІ".
+        Відповідай тільки одним словом.`;
         const result = await model.generateContent(prompt);
         const response = await result.response;
         const answer = response.text().trim().toUpperCase();
         return answer.includes('НІ');
     } catch (error) {
-        return true;
+        console.log(error);
+        return false;
     }
 }
 
@@ -69,7 +77,7 @@ app.post('/api/posts', async (req, res) => {
     const aiTag = await aiTopicAnalyzer(content);
 
     const newPost = {
-        id: Date.now(),
+        id: forumPosts.length + 1,
         user: user || 'Студент',
         content: content,
         tag: aiTag,

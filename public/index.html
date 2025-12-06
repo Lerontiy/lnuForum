@@ -10,7 +10,14 @@
         <h1>🎓 Навчальний Форум</h1>
         <div class="post-form">
             <input type="text" id="username" placeholder="Ваше ім'я">
-            <textarea id="message" placeholder="Нова тема..."></textarea>
+            <textarea 
+                id="message" 
+                placeholder="Нова тема..." 
+                autocomplete="off"
+                rows="1" 
+                style="resize: none; overflow: hidden;"
+                oninput="this.style.height = 'auto'; this.style.height = this.scrollHeight + 'px'"
+            ></textarea>
             <button onclick="sendPost()">Створити тему</button>
             <p id="status-msg"></p>
         </div>
