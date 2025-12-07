@@ -1,16 +1,11 @@
-require('dotenv').config();
 const express = require('express');
 const path = require('path');
 const fs = require('fs');
-const { GoogleGenerativeAI } = require("@google/generative-ai");
+const ollama = require('ollama').default;
 
 const app = express();
 const PORT = 3000;
 const DB_FILE = 'database.json';
-
-const API_KEY = process.env.GEMINI_KEY;
-const genAI = new GoogleGenerativeAI(API_KEY);
-const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
@@ -28,34 +23,57 @@ function saveToDb() {
 
 async function aiModeratorCheck(text) {
     try {
-        const prompt = `Ти дуже суворий модератор. Перевір текст: "${text}".
-        Відповідай "ТАК" (блокувати), якщо виконується хоча б одна умова:
-        1. Текст містить агресію, мати, образи або грубий сленг.
-        2. Текст є безглуздим набором літер чи випадкових символів.
-        3. Текст містить спам або повторення однієї літери багато разів.
-        
-        Якщо текст має сенс, читабельний і ввічливий — відповідай "НІ".
-        Відповідай тільки одним словом.`;
-        const result = await model.generateContent(prompt);
-        const response = await result.response;
-        const answer = response.text().trim().toUpperCase();
-        return answer.includes('НІ');
+        const prompt = `
+        Ти — суворий адміністратор форуму.
+        Твоє завдання — перевірити текст на токсичність.
+
+        Правила:
+        1. Якщо текст містить нецензурну лексику, лайку, вульгарний сленг, образи, безмістовний або випадково набраний текст — відповідай "BLOCK".
+        2. У всіх інших випадках відповідай "ALLOW".
+
+        Текст для перевірки: "${text}"
+
+        Твій вердикт (тільки одне слово: BLOCK або ALLOW):
+        `;
+        const response = await ollama.chat({
+            model: 'qwen2.5:3b',
+            messages: [{ role: 'user', content: prompt }],
+        });
+        return response.message.content.toUpperCase().includes('ALLOW');
     } catch (error) {
         console.log(error);
-        return false;
+        return false; 
     }
 }
 
 async function aiTopicAnalyzer(text) {
     try {
         const prompt = `Проаналізуй текст: "${text}". Обери одну категорію зі списку: "Запитання ❓", "Подяка 🙏", "Технічне 💻", "Обговорення 🗣️". Відповідай ТІЛЬКИ назвою категорії без зайвих слів.`;
-        const result = await model.generateContent(prompt);
-        const response = await result.response;
-        return response.text().trim();
+        const response = await ollama.chat({
+            model: 'qwen2.5:3b',
+            messages: [{ role: 'user', content: prompt }],
+        });
+        return response.message.content.trim();
     } catch (error) {
+        console.log(error);
         return 'Обговорення 🗣️';
     }
 }
+
+app.post('/api/login', (req, res) => {
+    const { email } = req.body;
+    
+    if (!email) return res.status(400).json({ error: 'Введіть пошту' });
+
+    const allowedDomain = '@lnu.edu.ua';
+    
+    if (email.endsWith(allowedDomain)) {
+        const username = email.split('@')[0]; 
+        res.json({ success: true, username: username });
+    } else {
+        res.status(403).json({ error: `Доступ тільки для корпоративної пошти ${allowedDomain}` });
+    }
+});
 
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));

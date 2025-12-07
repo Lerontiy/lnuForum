@@ -1,14 +1,58 @@
-loadPosts();
+let currentUser = "";
+
+function checkSession() {
+    const savedUser = localStorage.getItem('forumUser');
+    if (savedUser) {
+        currentUser = savedUser;
+        showForum();
+    }
+}
+
+async function login() {
+    const email = document.getElementById('email-input').value;
+    const errorMsg = document.getElementById('login-error');
+    
+    if (!email) return;
+
+    try {
+        const response = await fetch('/api/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email })
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+            currentUser = result.username;
+            localStorage.setItem('forumUser', currentUser);
+            showForum();
+        } else {
+            errorMsg.innerText = result.error;
+        }
+    } catch (e) {
+        errorMsg.innerText = "Помилка сервера";
+    }
+}
+
+function logout() {
+    localStorage.removeItem('forumUser');
+    location.reload();
+}
+
+function showForum() {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('forum-screen').style.display = 'block';
+    document.getElementById('current-user-display').innerText = currentUser;
+    loadPosts();
+}
 
 async function sendPost() {
-    const userInput = document.getElementById('username');
     const contentInput = document.getElementById('message');
     const status = document.getElementById('status-msg');
-    const btn = document.querySelector('.post-form button');
+    const btn = document.querySelector('#forum-screen .post-form button');
 
-    const user = userInput.value;
     const content = contentInput.value;
-
     if (!content) return;
 
     btn.disabled = true;
@@ -20,13 +64,14 @@ async function sendPost() {
         const response = await fetch('/api/posts', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ user, content })
+            body: JSON.stringify({ user: currentUser, content })
         });
 
         const result = await response.json();
 
         if (response.ok) {
             contentInput.value = "";
+            contentInput.style.height = '42px';
             loadPosts();
         } else {
             status.innerText = result.error;
@@ -40,13 +85,10 @@ async function sendPost() {
 }
 
 async function sendComment(postId) {
-    const userInput = document.getElementById(`user-${postId}`);
     const contentInput = document.getElementById(`comment-${postId}`);
     const btn = document.querySelector(`button[onclick="sendComment(${postId})"]`);
 
-    const user = userInput.value;
     const content = contentInput.value;
-    
     if(!content) return;
 
     btn.disabled = true;
@@ -57,7 +99,7 @@ async function sendComment(postId) {
         const response = await fetch('/api/comments', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ postId, user, content })
+            body: JSON.stringify({ postId, user: currentUser, content })
         });
 
         if (response.ok) {
@@ -106,19 +148,20 @@ async function loadPosts() {
             </div>
 
             <div class="reply-form">
-                <input type="text" id="user-${post.id}" placeholder="Ваше ім'я" class="mini-input" autocomplete="off">
                 <textarea 
                     id="comment-${post.id}" 
-                    placeholder="Коментар..." 
+                    placeholder="Відповісти..." 
                     class="mini-input" 
                     autocomplete="off" 
                     rows="1" 
                     style="resize: none; overflow: hidden;"
                     oninput="this.style.height = 'auto'; this.style.height = this.scrollHeight + 'px'"
-                ></textarea> 
-                <button onclick="sendComment(${post.id})" class="mini-btn">Додати</button>
+                ></textarea>
+                <button onclick="sendComment(${post.id})" class="mini-btn">Reply</button>
             </div>
         `;
         list.appendChild(postDiv);
     });
 }
+
+checkSession();

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <title>Вхід Microsoft</title>
+    <script src="https://alcdn.msauth.net/browser/2.30.0/js/msal-browser.min.js"></script>
+    
+    <script src="config.js"></script> 
+</head>
+<body>
+
+    <h2>Тест входу</h2>
+    <button onclick="signIn()">Увійти через Microsoft</button>
+
+    <script>
+        const msalConfig = {
+            auth: {
+                clientId: MSA_CONFIG.clientId,  
+                authority: MSA_CONFIG.authority, 
+                redirectUri: MSA_CONFIG.redirectUri
+            }
+        };
+
+        const msalInstance = new msal.PublicClientApplication(msalConfig);
+
+        async function signIn() {
+            try {
+                const response = await msalInstance.loginPopup();
+                alert("Привіт, " + response.account.username);
+            } catch (error) {
+                console.error(error);
+            }
+        }
+    </script>
+
+</body>
+</html>

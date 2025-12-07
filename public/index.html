@@ -2,14 +2,32 @@
 <html lang="uk">
 <head>
     <meta charset="UTF-8">
-    <title>AI Форум</title>
+    <title>Студентський форум ЛНУ</title>
     <link rel="stylesheet" href="style.css">
+
+    <script src="https://alcdn.msauth.net/browser/2.30.0/js/msal-browser.min.js"></script>
+    <script src="config.js"></script>
 </head>
 <body>
-    <div class="container">
-        <h1>🎓 Навчальний Форум</h1>
+
+    <div id="login-screen" class="container" style="text-align: center; margin-top: 100px;">
+        <h1>🔐 Вхід у систему</h1>
+        <p>Використовуйте корпоративну пошту (@lnu.edu.ua)</p>
+        
+        <div class="post-form" style="max-width: 400px; margin: 0 auto;">
+            <button onclick="loginWithMicrosoft()">Увійти через Microsoft</button>
+            <p id="login-error" style="color: red; margin-top: 10px;"></p>
+        </div>
+    </div>
+
+    <div id="forum-screen" class="container" style="display: none;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h1>🎓 Форум ЛНУ</h1>
+            <button onclick="logout()" style="width: auto; background: #666;">Вийти</button>
+        </div>
+        
         <div class="post-form">
-            <input type="text" id="username" placeholder="Ваше ім'я">
+            <p>Привіт, <strong id="current-user-display">Student</strong>!</p>
             <textarea 
                 id="message" 
                 placeholder="Нова тема..." 
@@ -18,11 +36,64 @@
                 style="resize: none; overflow: hidden;"
                 oninput="this.style.height = 'auto'; this.style.height = this.scrollHeight + 'px'"
             ></textarea>
+            
             <button onclick="sendPost()">Створити тему</button>
             <p id="status-msg"></p>
         </div>
         <div id="posts-list"></div>
     </div>
+
     <script src="script.js"></script>
+
+    <script>
+        const msalInstance = new msal.PublicClientApplication({
+            auth: {
+                clientId: MSA_CONFIG.clientId,
+                authority: MSA_CONFIG.authority,
+                redirectUri: MSA_CONFIG.redirectUri
+            }
+        });
+
+        window.addEventListener('load', () => {
+            const savedUser = localStorage.getItem('currentUser');
+            if (savedUser) {
+                showForumScreen(savedUser);
+            }
+        });
+
+        async function loginWithMicrosoft() {
+            try {
+                const response = await msalInstance.loginPopup();
+                const username = response.account.username;
+                
+                localStorage.setItem('currentUser', username);
+                
+                showForumScreen(username);
+
+            } catch (error) {
+                console.error(error);
+                document.getElementById('login-error').innerText = "Помилка: " + error.message;
+            }
+        }
+
+        function showForumScreen(username) {
+            document.getElementById('current-user-display').innerText = username;
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('forum-screen').style.display = 'block';
+
+            if (typeof renderPosts === "function") {
+                renderPosts();
+            } else if (typeof loadPosts === "function") {
+                loadPosts();
+            } else {
+                console.log("Увага: не знайдено функції для показу постів у script.js");
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('currentUser');
+            location.reload();
+        }
+    </script>
 </body>
 </html>
