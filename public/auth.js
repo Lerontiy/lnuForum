@@ -7,24 +7,47 @@ const msalInstance = new msal.PublicClientApplication({
 });
 
 window.addEventListener('load', () => {
-    const savedUser = localStorage.getItem('currentUser');
-    if (savedUser) {
-        showForumScreen(savedUser);
+    const token = localStorage.getItem('authToken');
+    const userName = localStorage.getItem('userName');
+    
+    if (token && userName) {
+        showForumScreen(userName);
     }
 });
 
 async function loginWithMicrosoft() {
     try {
-        const response = await msalInstance.loginPopup();
-        const username = response.account.username;
-        
-        localStorage.setItem('currentUser', username);
-        
-        showForumScreen(username);
+        const loginResponse = await msalInstance.loginPopup({
+            scopes: ["User.Read", "openid", "profile"]
+        });
+
+        const email = loginResponse.account.username.toLowerCase();
+
+        if (!email.endsWith('@lnu.edu.ua')) {
+            alert("Доступ дозволено тільки через корпоративну пошту @lnu.edu.ua");
+            localStorage.clear();
+            return;
+        }
+
+        const response = await fetch('/api/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: email })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            localStorage.setItem('authToken', data.token);
+            
+            showForumScreen(data.username);
+        } else {
+            alert("Помилка входу на сервер: " + data.error);
+        }
 
     } catch (error) {
         console.error(error);
-        document.getElementById('login-error').innerText = "Помилка: " + error.message;
+        document.getElementById('login-error').innerText = "Error: " + error.message;
     }
 }
 
@@ -33,16 +56,10 @@ function showForumScreen(username) {
     document.getElementById('login-screen').style.display = 'none';
     document.getElementById('forum-screen').style.display = 'block';
 
-    if (typeof renderPosts === "function") {
-        renderPosts();
-    } else if (typeof loadPosts === "function") {
-        loadPosts();
-    } else {
-        console.log("Увага: не знайдено функції для показу постів у script.js");
-    }
+    if (typeof loadPosts === "function") loadPosts();
 }
 
 function logout() {
-    localStorage.removeItem('currentUser');
+    localStorage.clear();
     location.reload();
 }

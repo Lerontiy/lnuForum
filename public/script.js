@@ -25,12 +25,14 @@ async function login() {
 
         if (response.ok) {
             currentUser = result.username;
+            localStorage.setItem('authToken', result.token);
             localStorage.setItem('forumUser', currentUser);
             showForum();
         } else {
             errorMsg.innerText = result.error;
         }
-    } catch (e) {
+    } catch (error) {
+        console.log(error);
         errorMsg.innerText = "Помилка сервера";
     }
 }
@@ -48,48 +50,62 @@ function showForum() {
 }
 
 async function sendPost() {
-    const contentInput = document.getElementById('message');
-    const status = document.getElementById('status-msg');
-    const btn = document.querySelector('#forum-screen .post-form button');
+    const messageInput = document.getElementById('message');
+    const content = messageInput.value;
+    if(!content) return;
 
-    const content = contentInput.value;
-    if (!content) return;
+    const btn = document.getElementById('sendBtn');
+    const token = localStorage.getItem('authToken');
 
+    if (!token) {
+        alert("Please login first");
+        return;
+    }
+
+    const originalText = btn.innerText;
     btn.disabled = true;
-    const oldText = btn.innerText;
-    btn.innerText = "⏳ AI перевіряє...";
-    status.innerText = "";
+    btn.innerText = '⏳...';
+    btn.style.opacity = '0.6';
 
     try {
         const response = await fetch('/api/posts', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ user: currentUser, content })
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ content: content })
         });
 
-        const result = await response.json();
-
         if (response.ok) {
-            contentInput.value = "";
-            contentInput.style.height = '42px';
+            messageInput.value = '';
             loadPosts();
         } else {
-            status.innerText = result.error;
+            const data = await response.json();
+            alert(data.error);
         }
     } catch (error) {
-        status.innerText = "Помилка з'єднання!";
+        console.error(error);
+        alert("Помилка з'єднання");
     } finally {
         btn.disabled = false;
-        btn.innerText = oldText;
+        btn.innerText = originalText;
+        btn.style.opacity = '1';
     }
 }
 
 async function sendComment(postId) {
     const contentInput = document.getElementById(`comment-${postId}`);
-    const btn = document.querySelector(`button[onclick="sendComment(${postId})"]`);
-
     const content = contentInput.value;
     if(!content) return;
+
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+        alert("Будь ласка, увійдіть у систему!");
+        return;
+    }
+
+    const btn = document.querySelector(`button[onclick="sendComment(${postId})"]`);
 
     btn.disabled = true;
     const oldText = btn.innerText;
@@ -108,6 +124,7 @@ async function sendComment(postId) {
             alert('AI-Модератор: Коментар заблоковано!');
         }
     } catch (error) {
+        console.log(error);
         alert("Помилка з'єднання!");
     } finally {
         btn.disabled = false;
@@ -157,7 +174,7 @@ async function loadPosts() {
                     style="resize: none; overflow: hidden;"
                     oninput="this.style.height = 'auto'; this.style.height = this.scrollHeight + 'px'"
                 ></textarea>
-                <button onclick="sendComment(${post.id})" class="mini-btn">Reply</button>
+                <button onclick="sendComment(${post.id})" class="mini-btn">Додати</button>
             </div>
         `;
         list.appendChild(postDiv);
