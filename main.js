@@ -2,6 +2,8 @@ const express = require('express');
 const path = require('path');
 const fs = require('fs');
 const ollama = require('ollama').default;
+const jwt = require('jsonwebtoken');
+const jwksClient = require('jwks-rsa');
 
 const app = express();
 const PORT = 3000;
@@ -77,10 +79,6 @@ app.post('/api/login', (req, res) => {
 
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
-
-app.get('/api/posts', (req, res) => {
-    res.json(forumPosts);
 });
 
 app.post('/api/posts', async (req, res) => {
