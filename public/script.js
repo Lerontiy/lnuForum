@@ -71,14 +71,17 @@ async function sendComment(postId) {
             },
             body: JSON.stringify({ postId, content })
         });
-        console.log(response);
+        const data = await response.json();
+
         if (response.ok) {
             loadPosts();
-        } else {
-            alert('AI-Модератор: Коментар заблоковано!');
+        } else if (data.error == "Потрібна авторизація" || data.error == "Невірний токен") {
+            alert(data.error);
+            logout();
+        } else if (data.error == "Коментар заблоковано AI-модератором."){
+            alert(data.error);
         }
     } catch (error) {
-        console.log(error);
         alert("Помилка з'єднання!");
     } finally {
         btn.disabled = false;
