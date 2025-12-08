@@ -37,7 +37,7 @@ async function loginWithMicrosoft() {
 
         if (!email.endsWith('@lnu.edu.ua')) {
             alert("Доступ дозволено тільки через корпоративну пошту @lnu.edu.ua");
-            localStorage.clear();
+            logout();
             return;
         }
 
@@ -50,10 +50,14 @@ async function loginWithMicrosoft() {
         const data = await response.json();
 
         if (response.ok) {
+            //const cleanUsername = data.username.replaceAll('.', ' ')
+            const nameParts =  data.username.split('.');
+            const cleanUsername = nameParts.slice(0, 2).join(' ');
+
             localStorage.setItem('authToken', data.token);
-            localStorage.setItem('userName', data.username);
+            localStorage.setItem('userName', cleanUsername);
             
-            showForum(data.username);
+            showForum(cleanUsername);
         } else {
             alert("Помилка входу на сервер: " + data.error);
         }
