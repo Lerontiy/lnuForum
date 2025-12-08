@@ -1,54 +1,3 @@
-let currentUser = "";
-
-function checkSession() {
-    const savedUser = localStorage.getItem('forumUser');
-    if (savedUser) {
-        currentUser = savedUser;
-        showForum();
-    }
-}
-
-async function login() {
-    const email = document.getElementById('email-input').value;
-    const errorMsg = document.getElementById('login-error');
-    
-    if (!email) return;
-
-    try {
-        const response = await fetch('/api/login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email })
-        });
-
-        const result = await response.json();
-
-        if (response.ok) {
-            currentUser = result.username;
-            localStorage.setItem('authToken', result.token);
-            localStorage.setItem('forumUser', currentUser);
-            showForum();
-        } else {
-            errorMsg.innerText = result.error;
-        }
-    } catch (error) {
-        console.log(error);
-        errorMsg.innerText = "Помилка сервера";
-    }
-}
-
-function logout() {
-    localStorage.removeItem('forumUser');
-    location.reload();
-}
-
-function showForum() {
-    document.getElementById('login-screen').style.display = 'none';
-    document.getElementById('forum-screen').style.display = 'block';
-    document.getElementById('current-user-display').innerText = currentUser;
-    loadPosts();
-}
-
 async function sendPost() {
     const messageInput = document.getElementById('message');
     const content = messageInput.value;
@@ -58,8 +7,8 @@ async function sendPost() {
     const token = localStorage.getItem('authToken');
 
     if (!token) {
-        alert("Please login first");
-        return;
+        alert("Будь ласка, увійдіть у систему!");
+        logout();
     }
 
     const originalText = btn.innerText;
@@ -76,13 +25,15 @@ async function sendPost() {
             },
             body: JSON.stringify({ content: content })
         });
-
+        
+        const statusDiv = document.getElementById('status-msg');
         if (response.ok) {
             messageInput.value = '';
+            statusDiv.innerText = '';
             loadPosts();
         } else {
             const data = await response.json();
-            alert(data.error);
+            statusDiv.innerText = data.error;
         }
     } catch (error) {
         console.error(error);
@@ -114,10 +65,13 @@ async function sendComment(postId) {
     try {
         const response = await fetch('/api/comments', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ postId, user: currentUser, content })
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ postId, content })
         });
-
+        console.log(response);
         if (response.ok) {
             loadPosts();
         } else {
@@ -180,5 +134,3 @@ async function loadPosts() {
         list.appendChild(postDiv);
     });
 }
-
-checkSession();

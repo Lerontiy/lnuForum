@@ -1,22 +1,34 @@
-const msalInstance = new msal.PublicClientApplication({
-    auth: {
-        clientId: MSA_CONFIG.clientId,
-        authority: MSA_CONFIG.authority,
-        redirectUri: MSA_CONFIG.redirectUri
-    }
-});
-
-window.addEventListener('load', () => {
+function checkSession() {
     const token = localStorage.getItem('authToken');
-    const userName = localStorage.getItem('userName');
+    const username = localStorage.getItem('userName');
     
-    if (token && userName) {
-        showForumScreen(userName);
+    if (token && username) {
+        showForum(username);
     }
-});
+}
+
+function showForum(username) {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('forum-screen').style.display = 'block';
+    document.getElementById('current-user-display').innerText = username;
+    loadPosts();
+}
+
+async function initializeMsal() {
+    const response = await fetch('/msalInstance');
+    const config = await response.json(); 
+    return new msal.PublicClientApplication({
+        auth: {
+            clientId: config.clientId, 
+            authority: config.authority,
+            redirectUri: config.redirectUri 
+        }
+    });
+}
 
 async function loginWithMicrosoft() {
     try {
+        const msalInstance = await initializeMsal();
         const loginResponse = await msalInstance.loginPopup({
             scopes: ["User.Read", "openid", "profile"]
         });
@@ -39,27 +51,21 @@ async function loginWithMicrosoft() {
 
         if (response.ok) {
             localStorage.setItem('authToken', data.token);
+            localStorage.setItem('userName', data.username);
             
-            showForumScreen(data.username);
+            showForum(data.username);
         } else {
             alert("Помилка входу на сервер: " + data.error);
         }
 
     } catch (error) {
-        console.error(error);
         document.getElementById('login-error').innerText = "Error: " + error.message;
     }
-}
-
-function showForumScreen(username) {
-    document.getElementById('current-user-display').innerText = username;
-    document.getElementById('login-screen').style.display = 'none';
-    document.getElementById('forum-screen').style.display = 'block';
-
-    if (typeof loadPosts === "function") loadPosts();
 }
 
 function logout() {
     localStorage.clear();
     location.reload();
 }
+
+checkSession();
