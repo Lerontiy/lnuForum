@@ -3,6 +3,7 @@
 *.txt
 *.pdf
 node_modules/
+.DS_Store
 .env
 test.js
 database.json

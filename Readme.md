@@ -6,7 +6,7 @@
      ollama run qwen2.5:3b
 
 2. Далі команди:
-    npm install
-    node main.js
+    - npm install
+    - node main.js
    
-2. Відкрийте у браузері: http://localhost:3000
+3. Відкрийте у браузері: http://localhost:3000

@@ -19,7 +19,7 @@ exports.checkToxicity = async (text) => {
 
         Твій вердикт (тільки одне слово: BLOCK або ALLOW.):
         `;
-        const response = await ollama.chat({  // . Пояснення
+        const response = await ollama.chat({  
             model: 'qwen2.5:3b',
             messages: [{ role: 'user', content: prompt }],
         });

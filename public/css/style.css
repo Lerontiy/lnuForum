@@ -1,4 +1,13 @@
-body { font-family: sans-serif; background-color: #f0f2f5; padding: 20px; }
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0; 
+    padding-top: 20px; 
+    font-family: sans-serif;
+    background-color: #f0f2f5;
+}
 .container { max-width: 700px; margin: 0 auto; }
 h1 { color: #1c1e21; text-align: center; }
 
@@ -55,4 +64,48 @@ small { color: #65676b; font-size: 0.8em; }
 }
 .mini-btn {
     width: auto;
+}
+
+.center-screen {
+    text-align: center;
+    margin-top: 100px;
+}
+.form-narrow {
+    max-width: 400px; 
+    margin: 0 auto;
+}
+.error-msg {
+    color: red; 
+    margin-top: 10px;
+}
+.header-row {
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center;
+}
+.btn-secondary {
+    width: auto; 
+    background: #666;
+}
+.auto-resize {
+    resize: none; 
+    overflow: hidden;
+}
+
+@media (max-width: 600px) {
+    .container {
+        width: 100%;
+        max-width: 100%;
+        margin: 0 auto;
+        padding: 15px; 
+    }
+    
+    .center-screen {
+        margin-top: 30px; 
+    }
+    
+    input, button, textarea {
+        width: 100%;
+        max-width: 100%;
+    }
 }

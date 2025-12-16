@@ -2,27 +2,29 @@
 <html lang="uk">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
     <title>Студентський форум ЛНУ</title>
     <link rel="stylesheet" href="css/style.css">
-
     <script src="https://alcdn.msauth.net/browser/2.30.0/js/msal-browser.min.js"></script>
 </head>
 <body>
 
-    <div id="login-screen" class="container" style="text-align: center; margin-top: 100px;">
+    <div id="login-screen" class="container center-screen">
         <h1>🔐 Вхід у систему</h1>
         <p>Використовуйте корпоративну пошту (@lnu.edu.ua)</p>
         
-        <div class="post-form" style="max-width: 400px; margin: 0 auto;">
-            <button onclick="loginWithMicrosoft()">Увійти через Microsoft</button>
-            <p id="login-error" style="color: red; margin-top: 10px;"></p>
+        <div class="post-form form-narrow">
+            <button id="loginButton" onclick="loginWithMicrosoft()">
+                Увійти через Microsoft
+            </button>
+            <p id="login-error" class="error-msg"></p>
         </div>
     </div>
 
     <div id="forum-screen" class="container" style="display: none;">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div class="header-row">
             <h1>🎓 Форум ЛНУ</h1>
-            <button onclick="logout()" style="width: auto; background: #666;">Вийти</button>
+            <button onclick="logout()" class="btn-secondary">Вийти</button>
         </div>
         
         <div class="post-form">
@@ -32,8 +34,7 @@
                 placeholder="Нова тема..." 
                 autocomplete="off"
                 rows="1" 
-                style="resize: none; overflow: hidden;"
-                oninput="this.style.height = 'auto'; this.style.height = this.scrollHeight + 'px'"
+                class="auto-resize"
             ></textarea>
             
             <button id="sendBtn" onclick="sendPost()">Створити тему</button>
