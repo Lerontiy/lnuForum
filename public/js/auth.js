@@ -1,6 +1,6 @@
 function checkSession() {
     const token = localStorage.getItem('authToken');
-    const username = localStorage.getItem('userName');
+    const username = localStorage.getItem('username');
     
     if (token && username) {
         showForum(username);
@@ -15,7 +15,7 @@ function showForum(username) {
 }
 
 async function initializeMsal() {
-    const response = await fetch('/msalInstance');
+    const response = await fetch('/api/msalInstance');
     const config = await response.json(); 
     return new msal.PublicClientApplication({
         auth: {
@@ -50,14 +50,9 @@ async function loginWithMicrosoft() {
         const data = await response.json();
 
         if (response.ok) {
-            //const cleanUsername = data.username.replaceAll('.', ' ')
-            const nameParts =  data.username.split('.');
-            const cleanUsername = nameParts.slice(0, 2).join(' ');
-
             localStorage.setItem('authToken', data.token);
-            localStorage.setItem('userName', cleanUsername);
-            
-            showForum(cleanUsername);
+            localStorage.setItem('username', data.username);
+            showForum(data.username);
         } else {
             alert("Помилка входу на сервер: " + data.error);
         }

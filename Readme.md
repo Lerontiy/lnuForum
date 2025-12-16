@@ -3,7 +3,7 @@
 1. Для роботи штучного інтелекту (AI):
    - Скачайте та встановіть Ollama (https://ollama.com)
    - У терміналі введіть команду:
-     ollama run llama3.2
+     ollama run qwen2.5:3b
 
 2. Далі команди:
     npm install
