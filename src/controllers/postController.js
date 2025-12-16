@@ -19,7 +19,7 @@ exports.createPost = async (req, res) => {
         if (!content) return res.status(400).json({ error: 'Порожньо!' });
 
         const isSafe = await aiService.checkToxicity(content);
-        if (!isSafe) return res.status(403).json({ error: 'Заблоковано AI-модератором.' });
+        if (!isSafe) return res.status(422).json({ error: 'Заблоковано AI-модератором.' });
 
         const aiTag = await aiService.analyzeTopic(content);
 

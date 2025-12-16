@@ -9,22 +9,10 @@ const CommentSchema = new mongoose.Schema({
 });
 
 const PostSchema = new mongoose.Schema({
-    user: { 
-        type: String, 
-        required: true 
-    },
-    content: { 
-        type: String, 
-        required: true 
-    },
-    tag: { 
-        type: String, 
-        default: 'Обговорення 🗣️' 
-    },
-    time: { 
-        type: String, 
-        default: () => new Date().toLocaleString() 
-    },
+    user: { type: String, required: true },
+    content: { type: String, required: true },
+    tag: { type: String, default: 'Обговорення 🗣️'},
+    time: { type: String, default: () => new Date().toLocaleString() },
     comments: [CommentSchema] 
 }, {
     timestamps: true 
