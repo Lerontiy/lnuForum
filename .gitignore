@@ -3,6 +3,7 @@
 *.txt
 *.pdf
 node_modules/
+trash
 .DS_Store
 .env
 test.js

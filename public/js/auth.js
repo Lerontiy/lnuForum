@@ -1,3 +1,5 @@
+// auth.js
+
 let msalInstance = null;
 
 async function initializeApp() {

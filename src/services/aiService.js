@@ -1,3 +1,5 @@
+// aiService.js
+
 const ollama = require('ollama').default;
 const AI_MODEL_NAME = process.env.AI_MODEL;
 

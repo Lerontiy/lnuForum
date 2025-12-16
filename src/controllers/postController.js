@@ -1,3 +1,5 @@
+// postController.js
+
 const Post = require('../models/Post');
 const aiService = require('../services/aiService');
 

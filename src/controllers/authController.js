@@ -1,3 +1,5 @@
+// authController.js
+
 const jwt = require('jsonwebtoken');
 
 exports.login = (req, res) => {

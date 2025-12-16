@@ -1,3 +1,5 @@
+// script.js
+
 function escapeHtml(text) {
     if (!text) return text;
     return text
