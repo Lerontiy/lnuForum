@@ -11,7 +11,11 @@ module.exports = (req, res, next) => {
         req.user = decoded; 
         next(); 
     } catch (error) {
-        console.log(error);
-        return res.status(403).json({ error: 'Невірний токен' });
+        if (error.name !== "TokenExpiredError") {
+            console.error(error);
+            return res.status(401).json({ error: 'Невірний токен' });
+        } 
+        return res.status(401).json({ error: 'Термін дії токена вичерпався, залогіньтесь знову' });
+        
     }
 }

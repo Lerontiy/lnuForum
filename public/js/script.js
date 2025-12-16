@@ -25,14 +25,17 @@ async function sendPost() {
             },
             body: JSON.stringify({ content: content })
         });
+        const data = await response.json();
         
         const statusDiv = document.getElementById('status-msg');
         if (response.ok) {
             messageInput.value = '';
             statusDiv.innerText = '';
             loadPosts();
+        } else if (response.status==401) {
+            alert(data.error);
+            logout();
         } else {
-            const data = await response.json();
             statusDiv.innerText = data.error;
         }
     } catch (error) {
@@ -53,10 +56,11 @@ async function sendComment(postId) {
     const token = localStorage.getItem('authToken');
     if (!token) {
         alert("Будь ласка, увійдіть у систему!");
+        logout();
         return;
     }
 
-    const btn = document.querySelector(`button[onclick="sendComment(${postId})"]`);
+    const btn = document.querySelector(`button[onclick="sendComment('${postId}')"]`);
 
     btn.disabled = true;
     const oldText = btn.innerText;
@@ -75,10 +79,10 @@ async function sendComment(postId) {
 
         if (response.ok) {
             loadPosts();
-        } else if (data.error == "Потрібна авторизація" || data.error == "Невірний токен") {
+        } else if (response.status==401 || response.status==403) {
             alert(data.error);
             logout();
-        } else if (data.error == "Коментар заблоковано AI-модератором."){
+        } else { // if (data.error == "Коментар заблоковано AI-модератором.")
             alert(data.error);
         }
     } catch (error) {
@@ -123,7 +127,7 @@ async function loadPosts() {
 
             <div class="reply-form">
                 <textarea 
-                    id="comment-${post.id}" 
+                    id="comment-${post._id}" 
                     placeholder="Відповісти..." 
                     class="mini-input" 
                     autocomplete="off" 
@@ -131,7 +135,7 @@ async function loadPosts() {
                     style="resize: none; overflow: hidden;"
                     oninput="this.style.height = 'auto'; this.style.height = this.scrollHeight + 'px'"
                 ></textarea>
-                <button onclick="sendComment(${post.id})" class="mini-btn">Додати</button>
+                <button onclick="sendComment('${post._id}')" class="mini-btn">Додати</button>
             </div>
         `;
         list.appendChild(postDiv);
