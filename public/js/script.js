@@ -160,7 +160,7 @@ function renderPosts(posts) {
 function setButtonLoading(btn, isLoading, originalText = "") {
     if (isLoading) {
         btn.disabled = true;
-        btn.dataset.originalText = btn.innerText; // Запам'ятовуємо текст
+        btn.dataset.originalText = btn.innerText; 
         btn.innerText = originalText || '⏳...';
         btn.style.opacity = '0.6';
     } else {
@@ -178,7 +178,7 @@ function handleErrorResponse(status, errorMessage, statusDiv = null) {
         const msg = `⚠️ AI попередження: ${errorMessage}`;
         if (statusDiv) {
             statusDiv.innerText = msg;
-            statusDiv.style.color = 'orange'; // Warning color
+            statusDiv.style.color = 'orange'; 
         } else {
             alert(msg);
         }
